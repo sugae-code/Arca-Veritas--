@@ -211,7 +211,7 @@ class T10PlotRenderer:
                 speed_cells_text_color.append("black")
 
         fig = go.Figure(data=[go.Table(
-            columnwidth=[30, 100, 90, 50, 45, 80, 170],
+            columnwidth=[30, 100, 90, 70, 45, 80, 170],
             header=dict(
                 values=header,
                 fill_color='lightsteelblue',
