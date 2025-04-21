@@ -7,6 +7,7 @@ import subprocess
 from datetime import datetime, timedelta
 from dotenv import load_dotenv  # type: ignore
 from runner_db import RunnerDatabase  # type: ignore # ギルド共通ランナーDB
+import sys  # ← 追加！
 
 # .envからトークン読み込み
 load_dotenv()
@@ -36,7 +37,7 @@ bot = MyBot()
 async def post_image(channel, image_path, script_name, server, event_id, guild_id):
     try:
         # 生成コマンド実行
-        command = ["python", script_name, str(server), str(guild_id)]
+        command = [sys.executable, script_name, str(server), str(guild_id)]
         if event_id:
             command.append(str(event_id))
         subprocess.run(command, check=True)
