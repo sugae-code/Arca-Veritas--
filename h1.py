@@ -260,6 +260,7 @@ class T10PlotRenderer:
                 font=dict(size=14)
             )
         )
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         fig.write_image(output_path)
 
