@@ -42,6 +42,11 @@ async def post_image(channel, image_path, script_name, server, event_id, guild_i
             command.append(str(event_id))
         subprocess.run(command, check=True)
 
+        # 🔧 修正: 画像が存在しない場合は投稿スキップ
+        if not os.path.exists(image_path):
+            print(f"❌ 画像が存在しません: {image_path}")
+            return
+
         # Discordへ送信
         with open(image_path, "rb") as f:
             await channel.send(file=discord.File(f))

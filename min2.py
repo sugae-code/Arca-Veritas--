@@ -14,7 +14,7 @@ class APIClient:
     @staticmethod
     def fetch_json(url):
         try:
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, timeout=10)
             if response.status_code == 200:
                 return response.json()
         except Exception as e:
@@ -134,7 +134,10 @@ class T10Fetcher:
         start = datetime.datetime.fromtimestamp(int(info.get("startAt", [0])[0]) / 1000, datetime.timezone.utc)
         end = datetime.datetime.fromtimestamp(int(info.get("endAt", [0])[0]) / 1000, datetime.timezone.utc)
         now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
-        progress = max(0, min(100, ((now - start).total_seconds() / (end - start).total_seconds()) * 100))
+        try:
+            progress = max(0, min(100, ((now - start).total_seconds() / (end - start).total_seconds()) * 100))
+        except Exception:
+            progress = None
         return name, start, end, progress
 
     def get_t10_data(self, server, event_id):
@@ -174,6 +177,7 @@ class T10PlotRenderer:
 
     @staticmethod
     def render(entries, current_time, progress, runner_name, output_path):
+        progress_str = f"{progress:.2f}%" if progress is not None else "不明"
         header = ["順位", "プレイヤー名", "累計ポイント", "2分速", "分速順位", "上位との差", f"{runner_name} さんとの差"]
         columns = [[] for _ in header]
         for entry in entries:
@@ -248,14 +252,13 @@ class T10PlotRenderer:
             height=height,
             margin=dict(l=5, r=5, t=30, b=5),
             title=dict(
-                text=f"現在時刻: {current_time}　イベント進行度: {progress:.2f}%",
+                text=f"現在時刻: {current_time}　イベント進行度: {progress_str}",
                 x=0.5,
                 y=0.96,
                 font=dict(size=14)
             )
         )
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
         fig.write_image(output_path)
 
         def crop_bottom(image_path, px=160):
@@ -288,9 +291,17 @@ if __name__ == "__main__":
         event_id = fetcher.get_current_event_id(server)
 
     entries, runner_name = fetcher.fetch_and_store_t10(server, event_id, guild_id)
-    if entries:
-        _, _, _, progress = fetcher.get_event_info(event_id)
-        T10PlotRenderer.render(entries, current_time, progress, runner_name, output_path)
+    if not entries:
+        print("❌ データ取得失敗のため画像生成をスキップ")
+        sys.exit(1)
+
+    _, _, _, progress = fetcher.get_event_info(event_id)
+    if progress is None:
+        print("⚠️ 進行度データの取得に失敗しました（progress=None）")
+
+    T10PlotRenderer.render(entries, current_time, progress, runner_name, output_path)
+
+
 
 
 
