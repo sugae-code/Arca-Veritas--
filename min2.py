@@ -6,6 +6,7 @@ import requests
 import plotly.graph_objects as go
 from runner_db import RunnerDatabase  # type: ignore
 import sys
+import time
 from PIL import Image
 
 class APIClient:
@@ -13,13 +14,15 @@ class APIClient:
 
     @staticmethod
     def fetch_json(url):
-        try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 200:
-                return response.json()
-        except Exception as e:
-            print(f"API request failed: {e}")
-        return None
+        for attempt in range(5):
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    return response.json()
+            except Exception as e:
+                print(f"API request failed (attempt {attempt+1}/5): {e}")
+                time.sleep(1)
+            return None
 
 class T10Database:
     def __init__(self, db_path):
