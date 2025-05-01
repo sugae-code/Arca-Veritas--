@@ -22,7 +22,7 @@ class APIClient:
             except Exception as e:
                 print(f"API request failed (attempt {attempt+1}/5): {e}")
                 time.sleep(1)
-            return None
+        return None
 
 class T10Database:
     def __init__(self, db_path):
